@@ -11,7 +11,6 @@
  */
 
 _html2canvas.Parse = function ( images, options ) {
-    window.scroll(0,0);
 
     var support = {
         rangeBounds: false,
@@ -46,6 +45,7 @@ _html2canvas.Parse = function ( images, options ) {
         })()
     },
     element = (( options.elements === undefined ) ? document.body : options.elements[0]), // select body by default
+    scrollInfo = _html2canvas.Util.getScrollInfo(element),
     needReorder = false,
     numDraws = 0,
     fontData = {},
@@ -348,11 +348,7 @@ _html2canvas.Parse = function ( images, options ) {
                             range = body.createTextRange();
                         }
 
-                        if (range.getBoundingClientRect()) {
-                            bounds = range.getBoundingClientRect();
-                        }else{
-                            bounds = {};
-                        }
+                        bounds = _html2canvas.Util.Bounds(textNode, scrollInfo, range.getBoundingClientRect());
 
                     }
                 }else{
@@ -372,7 +368,7 @@ _html2canvas.Parse = function ( images, options ) {
                     wrapElement.appendChild(oldTextNode.cloneNode(true));
                     parent.replaceChild(wrapElement, oldTextNode);
 
-                    bounds = _html2canvas.Util.Bounds(wrapElement);
+                    bounds = _html2canvas.Util.Bounds(wrapElement, scrollInfo);
 
                     textValue = oldTextNode.nodeValue;
 
@@ -434,7 +430,7 @@ _html2canvas.Parse = function ( images, options ) {
         element.insertBefore(boundElement, element.firstChild);
 
 
-        bounds = _html2canvas.Util.Bounds( boundElement );
+        bounds = _html2canvas.Util.Bounds( boundElement, scrollInfo );
         element.removeChild( boundElement );
         element.style.listStyleType = type;
         return bounds;
@@ -1057,7 +1053,7 @@ _html2canvas.Parse = function ( images, options ) {
 
     function renderElement(el, parentStack){
 
-        var bounds = _html2canvas.Util.Bounds(el),
+        var bounds = _html2canvas.Util.Bounds(el, scrollInfo),
         x = bounds.left,
         y = bounds.top,
         w = bounds.width,

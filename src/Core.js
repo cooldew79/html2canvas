@@ -38,25 +38,41 @@ _html2canvas.Util.backgroundImage = function (src) {
     return src;
 };
 
-_html2canvas.Util.Bounds = function getBounds (el) {
-    var clientRect,
-    bounds = {};
+_html2canvas.Util.getScrollInfo = function(el) {
+    var win = document.defaultView;
+    var doc = el.ownerDocument;
+    var body = doc.body;
+    var docElem = doc.documentElement;
+    var clientTop  = docElem.clientTop  || body.clientTop  || 0;
+    var clientLeft = docElem.clientLeft || body.clientLeft || 0;
+    var scrollTop  = win.pageYOffset || docElem.scrollTop;
+    var scrollLeft = win.pageXOffset || docElem.scrollLeft;
+    return {
+        top: scrollTop,
+        left: scrollLeft,
+        clientTop: clientTop,
+        clientLeft: clientLeft
+    };
+};
 
-    if (el.getBoundingClientRect){
-        clientRect = el.getBoundingClientRect();
+_html2canvas.Util.Bounds = function(el, scrollInfo, box) {
+    if(!box && el.getBoundingClientRect) {
+        box = el.getBoundingClientRect();
+    }
 
+    scrollInfo = scrollInfo || _html2canvas.Util.getScrollInfo(el);
 
-        // TODO add scroll position to bounds, so no scrolling of window necessary
-        bounds.top = clientRect.top;
-        bounds.bottom = clientRect.bottom || (clientRect.top + clientRect.height);
-        bounds.left = clientRect.left;
+    if (box){
+        var top  = box.top  + scrollInfo.top  - scrollInfo.clientTop;
+        var left = box.left + scrollInfo.left - scrollInfo.clientLeft;
 
-        // older IE doesn't have width/height, but top/bottom instead
-        bounds.width = clientRect.width || (clientRect.right - clientRect.left);
-        bounds.height = clientRect.height || (clientRect.bottom - clientRect.top);
-
-        return bounds;
-
+        return {
+            top: top,
+            bottom: top + box.height,
+            left: left,
+            height: box.height,
+            width: box.width
+        };
     }
 };
 
